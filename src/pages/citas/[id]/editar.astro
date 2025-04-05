@@ -1,0 +1,67 @@
+---
+import { DashboardLayout } from '../../../components/layout/DashboardLayout';
+import { PageContainer } from '../../../components/layout/PageContainer';
+import { AppointmentForm } from '../../../components/appointments/AppointmentForm';
+import apiService from '../../../services/api';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/citas/' + Astro.params.id + '/editar');
+}
+
+// Verificar permisos (solo ciertos roles pueden acceder)
+const userRoles = Astro.locals.userRoles || [];
+const allowedRoles = ['administrador', 'medico', 'secretaria'];
+const hasAccess = userRoles.some(role => allowedRoles.includes(role));
+
+if (!hasAccess) {
+  return Astro.redirect('/dashboard?error=No tiene permisos para acceder a esta sección');
+}
+
+// Obtener ID de la cita desde la URL
+const appointmentId = Astro.params.id;
+
+// Verificar que el ID existe
+if (!appointmentId) {
+  return Astro.redirect('/citas?error=No se especificó una cita válida');
+}
+
+// Intentar obtener datos básicos de la cita para el título
+let appointmentInfo = {
+  paciente: "Paciente",
+  fecha: "Fecha no disponible"
+};
+
+try {
+  const response = await apiService.get(`/api/citas/${appointmentId}/basico`);
+  if (response && response.cita) {
+    const cita = response.cita;
+    appointmentInfo = {
+      paciente: `${cita.paciente.nombre} ${cita.paciente.apellido}`,
+      fecha: new Date(cita.fechaInicio).toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    };
+  }
+} catch (error) {
+  console.error("Error al obtener datos de la cita:", error);
+}
+
+const pageTitle = `Editar Cita`;
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title="Editar Cita"
+    description={`Paciente: ${appointmentInfo.paciente} | ${appointmentInfo.fecha}`}
+  >
+    <AppointmentForm 
+      appointmentId={appointmentId}
+      client:load 
+    />
+  </PageContainer>
+</DashboardLayout>

@@ -1,0 +1,74 @@
+---
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { PageContainer } from '../../components/layout/PageContainer';
+import { TreatmentsList } from '../../components/treatments/TreatmentsList';
+import Button from '../../components/ui/Button';
+import { Plus } from 'lucide-react';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/tratamientos');
+}
+
+// Verificar si el usuario tiene rol de administrador para mostrar acciones de gestión
+const userRoles = Astro.locals.userRoles || [];
+const isAdmin = userRoles.includes('administrador');
+
+// Obtener parámetros opcionales de la URL
+const categoryFilter = Astro.url.searchParams.get('categoria') || '';
+
+const pageTitle = categoryFilter 
+  ? categoryFilter === 'estetica_general' 
+    ? "Tratamientos de Estética General" 
+    : "Tratamientos de Medicina Estética"
+  : "Catálogo de Tratamientos";
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title={pageTitle}
+    description="Explora todos los tratamientos disponibles"
+    actions={
+      isAdmin && (
+        <Button 
+          variant="primary" 
+          icon={<Plus className="h-5 w-5" />}
+          onClick={() => window.location.href = '/tratamientos/nuevo'}
+        >
+          Nuevo Tratamiento
+        </Button>
+      )
+    }
+    client:load
+  >
+    <div class="mb-4 flex justify-between items-center">
+      <div class="flex space-x-2">
+        <a 
+          href="/tratamientos" 
+          class={`px-4 py-2 text-sm rounded-lg ${!categoryFilter ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+        >
+          Todos
+        </a>
+        <a 
+          href="/tratamientos?categoria=estetica_general" 
+          class={`px-4 py-2 text-sm rounded-lg ${categoryFilter === 'estetica_general' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+        >
+          Estética General
+        </a>
+        <a 
+          href="/tratamientos?categoria=medicina_estetica" 
+          class={`px-4 py-2 text-sm rounded-lg ${categoryFilter === 'medicina_estetica' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+        >
+          Medicina Estética
+        </a>
+      </div>
+    </div>
+    
+    <TreatmentsList 
+      categoryFilter={categoryFilter}
+      showAll={true}
+      isAdmin={isAdmin}
+      client:load 
+    />
+  </PageContainer>
+</DashboardLayout>

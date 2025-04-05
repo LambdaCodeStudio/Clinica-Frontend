@@ -1,0 +1,52 @@
+---
+import { DashboardLayout } from '../../../components/layout/DashboardLayout';
+import { PageContainer } from '../../../components/layout/PageContainer';
+import { TreatmentForm } from '../../../components/treatments/TreatmentForm';
+import apiService from '../../../services/api';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/tratamientos/' + Astro.params.id + '/editar');
+}
+
+// Verificar permisos (solo administradores pueden editar tratamientos)
+const userRoles = Astro.locals.userRoles || [];
+const isAdmin = userRoles.includes('administrador');
+
+if (!isAdmin) {
+  return Astro.redirect('/tratamientos?error=No tiene permisos para editar tratamientos');
+}
+
+// Obtener ID del tratamiento desde la URL
+const treatmentId = Astro.params.id;
+
+// Verificar que el ID existe
+if (!treatmentId) {
+  return Astro.redirect('/tratamientos?error=No se especificó un tratamiento válido');
+}
+
+// Intentar obtener datos básicos del tratamiento para el título
+let treatmentName = "Tratamiento";
+try {
+  const response = await apiService.get(`/api/tratamientos/${treatmentId}/basic`);
+  if (response && response.tratamiento) {
+    treatmentName = response.tratamiento.nombre;
+  }
+} catch (error) {
+  console.error("Error al obtener datos del tratamiento:", error);
+}
+
+const pageTitle = `Editar Tratamiento: ${treatmentName}`;
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title={`Editar Tratamiento: ${treatmentName}`}
+    description="Actualice la información del tratamiento"
+  >
+    <TreatmentForm 
+      treatmentId={treatmentId}
+      client:load 
+    />
+  </PageContainer>
+</DashboardLayout>

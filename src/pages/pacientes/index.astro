@@ -1,0 +1,42 @@
+---
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { PageContainer } from '../../components/layout/PageContainer';
+import { PatientsList } from '../../components/patients/PatientsList';
+import Button from '../../components/ui/Button';
+import { Plus } from 'lucide-react';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/pacientes');
+}
+
+// Verificar permisos (solo ciertos roles pueden acceder)
+const userRoles = Astro.locals.userRoles || [];
+const allowedRoles = ['administrador', 'medico', 'secretaria'];
+const hasAccess = userRoles.some(role => allowedRoles.includes(role));
+
+if (!hasAccess) {
+  return Astro.redirect('/dashboard?error=No tiene permisos para acceder a esta sección');
+}
+
+const pageTitle = "Gestión de Pacientes";
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title="Pacientes"
+    description="Administre los pacientes de la clínica"
+    actions={
+      <Button 
+        variant="primary" 
+        icon={<Plus className="h-5 w-5" />} 
+        onClick={() => window.location.href = '/pacientes/nuevo'}
+      >
+        Nuevo Paciente
+      </Button>
+    }
+    client:load
+  >
+    <PatientsList client:load />
+  </PageContainer>
+</DashboardLayout>

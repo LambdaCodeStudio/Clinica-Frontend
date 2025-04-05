@@ -1,0 +1,40 @@
+---
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { PageContainer } from '../../components/layout/PageContainer';
+import { AppointmentForm } from '../../components/appointments/AppointmentForm';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/citas/nueva');
+}
+
+// Verificar permisos (solo ciertos roles pueden acceder)
+const userRoles = Astro.locals.userRoles || [];
+const allowedRoles = ['administrador', 'medico', 'secretaria'];
+const hasAccess = userRoles.some(role => allowedRoles.includes(role));
+
+if (!hasAccess) {
+  return Astro.redirect('/dashboard?error=No tiene permisos para acceder a esta sección');
+}
+
+// Obtener parámetros opcionales de la URL
+const initialPatientId = Astro.url.searchParams.get('paciente') || '';
+const initialDoctorId = Astro.url.searchParams.get('medico') || '';
+const initialTreatmentId = Astro.url.searchParams.get('tratamiento') || '';
+
+const pageTitle = "Nueva Cita";
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title="Crear Nueva Cita"
+    description="Registre una nueva cita para un paciente"
+  >
+    <AppointmentForm 
+      initialPatientId={initialPatientId}
+      initialDoctorId={initialDoctorId}
+      initialTreatmentId={initialTreatmentId}
+      client:load 
+    />
+  </PageContainer>
+</DashboardLayout>

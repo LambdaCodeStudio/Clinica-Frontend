@@ -1,0 +1,89 @@
+---
+import { DashboardLayout } from '../../../components/layout/DashboardLayout';
+import { PageContainer } from '../../../components/layout/PageContainer';
+import { DocumentTemplatesList } from '../../../components/documents/DocumentTemplatesList';
+import Button from '../../../components/ui/Button';
+import { Plus } from 'lucide-react';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/documentos/templates');
+}
+
+// Verificar si el usuario tiene rol de administrador para mostrar acciones de gestión
+const userRoles = Astro.locals.userRoles || [];
+const isAdmin = userRoles.includes('administrador') || userRoles.includes('medico');
+
+// Obtener parámetros opcionales de la URL
+const typeFilter = Astro.url.searchParams.get('tipo') || '';
+
+const pageTitle = typeFilter 
+  ? `Plantillas de ${typeFilter.charAt(0).toUpperCase() + typeFilter.slice(1)}` 
+  : "Plantillas de Documentos";
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title={pageTitle}
+    description="Administre las plantillas de documentos de la clínica"
+    actions={
+      isAdmin && (
+        <Button 
+          variant="primary" 
+          icon={<Plus className="h-5 w-5" />}
+          onClick={() => window.location.href = '/documentos/templates/nuevo'}
+        >
+          Nueva Plantilla
+        </Button>
+      )
+    }
+    client:load
+  >
+    <div class="mb-4 flex justify-between items-center">
+      <div class="flex space-x-2 overflow-x-auto">
+        <a 
+          href="/documentos/templates" 
+          class={`px-4 py-2 text-sm rounded-lg ${!typeFilter ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+        >
+          Todos
+        </a>
+        <a 
+          href="/documentos/templates?tipo=consentimiento" 
+          class={`px-4 py-2 text-sm rounded-lg ${typeFilter === 'consentimiento' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+        >
+          Consentimientos
+        </a>
+        <a 
+          href="/documentos/templates?tipo=autorizacion" 
+          class={`px-4 py-2 text-sm rounded-lg ${typeFilter === 'autorizacion' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+        >
+          Autorizaciones
+        </a>
+        <a 
+          href="/documentos/templates?tipo=informativo" 
+          class={`px-4 py-2 text-sm rounded-lg ${typeFilter === 'informativo' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+        >
+          Informativos
+        </a>
+        <a 
+          href="/documentos/templates?tipo=receta" 
+          class={`px-4 py-2 text-sm rounded-lg ${typeFilter === 'receta' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+        >
+          Recetas
+        </a>
+        <a 
+          href="/documentos/templates?tipo=certificado" 
+          class={`px-4 py-2 text-sm rounded-lg ${typeFilter === 'certificado' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+        >
+          Certificados
+        </a>
+      </div>
+    </div>
+    
+    <DocumentTemplatesList 
+      typeFilter={typeFilter}
+      showAll={true}
+      client:load 
+    />
+  </PageContainer>
+</DashboardLayout>

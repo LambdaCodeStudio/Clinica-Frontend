@@ -1,0 +1,29 @@
+---
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { PageContainer } from '../../components/layout/PageContainer';
+import { TreatmentForm } from '../../components/treatments/TreatmentForm';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/tratamientos/nuevo');
+}
+
+// Verificar permisos (solo administradores pueden crear tratamientos)
+const userRoles = Astro.locals.userRoles || [];
+const isAdmin = userRoles.includes('administrador');
+
+if (!isAdmin) {
+  return Astro.redirect('/tratamientos?error=No tiene permisos para crear tratamientos');
+}
+
+const pageTitle = "Nuevo Tratamiento";
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title="Crear Nuevo Tratamiento"
+    description="Complete el formulario para crear un nuevo tratamiento"
+  >
+    <TreatmentForm client:load />
+  </PageContainer>
+</DashboardLayout>

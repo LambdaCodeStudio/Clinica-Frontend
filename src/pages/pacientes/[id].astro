@@ -1,0 +1,71 @@
+---
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { PageContainer } from '../../components/layout/PageContainer';
+import { PatientDetail } from '../../components/patients/PatientDetail';
+import Button from '../../components/ui/Button';
+import { Edit, Calendar } from 'lucide-react';
+import apiService from '../../services/api';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/pacientes/' + Astro.params.id);
+}
+
+// Verificar permisos (solo ciertos roles pueden acceder)
+const userRoles = Astro.locals.userRoles || [];
+const allowedRoles = ['administrador', 'medico', 'secretaria'];
+const hasAccess = userRoles.some(role => allowedRoles.includes(role));
+
+if (!hasAccess) {
+  return Astro.redirect('/dashboard?error=No tiene permisos para acceder a esta sección');
+}
+
+// Obtener ID del paciente desde la URL
+const patientId = Astro.params.id;
+
+// Verificar que el ID existe
+if (!patientId) {
+  return Astro.redirect('/pacientes?error=No se especificó un paciente válido');
+}
+
+// Intentar obtener datos básicos del paciente para el título
+let patientName = "Paciente";
+try {
+  const response = await apiService.get(`/api/pacientes/${patientId}/basico`);
+  if (response && response.paciente) {
+    patientName = `${response.paciente.nombre} ${response.paciente.apellido}`;
+  }
+} catch (error) {
+  console.error("Error al obtener datos del paciente:", error);
+}
+
+const pageTitle = `Paciente: ${patientName}`;
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title={patientName}
+    description="Información completa del paciente"
+    actions={
+      <div class="flex space-x-2">
+        <Button 
+          variant="secondary" 
+          icon={<Edit className="h-5 w-5" />} 
+          onClick={() => window.location.href = `/pacientes/${patientId}/editar`}
+        >
+          Editar
+        </Button>
+        <Button 
+          variant="primary" 
+          icon={<Calendar className="h-5 w-5" />}
+          onClick={() => window.location.href = `/citas/nueva?paciente=${patientId}`}
+        >
+          Nueva Cita
+        </Button>
+      </div>
+    }
+    client:load
+  >
+    <PatientDetail patientId={patientId} client:load />
+  </PageContainer>
+</DashboardLayout>

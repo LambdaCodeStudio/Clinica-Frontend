@@ -1,0 +1,29 @@
+---
+import { DashboardLayout } from '../../../components/layout/DashboardLayout';
+import { PageContainer } from '../../../components/layout/PageContainer';
+import { DocumentTemplateForm } from '../../../components/documents/DocumentTemplateForm';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/documentos/templates/nuevo');
+}
+
+// Verificar permisos (solo administradores y médicos pueden crear plantillas)
+const userRoles = Astro.locals.userRoles || [];
+const hasAccess = userRoles.includes('administrador') || userRoles.includes('medico');
+
+if (!hasAccess) {
+  return Astro.redirect('/documentos/templates?error=No tiene permisos para crear plantillas');
+}
+
+const pageTitle = "Nueva Plantilla de Documento";
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title="Crear Nueva Plantilla de Documento"
+    description="Complete el formulario para crear una nueva plantilla de documento"
+  >
+    <DocumentTemplateForm client:load />
+  </PageContainer>
+</DashboardLayout>

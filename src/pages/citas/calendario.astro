@@ -1,0 +1,57 @@
+---
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { PageContainer } from '../../components/layout/PageContainer';
+import { CalendarView } from '../../components/appointments/CalendarView';
+import Button from '../../components/ui/Button';
+import { Plus, List } from 'lucide-react';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/citas/calendario');
+}
+
+// Verificar permisos (solo ciertos roles pueden acceder)
+const userRoles = Astro.locals.userRoles || [];
+const allowedRoles = ['administrador', 'medico', 'secretaria'];
+const hasAccess = userRoles.some(role => allowedRoles.includes(role));
+
+if (!hasAccess) {
+  return Astro.redirect('/dashboard?error=No tiene permisos para acceder a esta sección');
+}
+
+// Obtener el ID del médico si está filtrado
+const doctorId = Astro.url.searchParams.get('medico') || '';
+
+const pageTitle = "Calendario de Citas";
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title="Calendario de Citas"
+    description="Visualización y gestión de citas en formato calendario"
+    actions={
+      <div class="flex space-x-2">
+        <Button 
+          variant="secondary" 
+          icon={<List className="h-5 w-5" />} 
+          onClick={() => window.location.href = '/citas'}
+        >
+          Vista Lista
+        </Button>
+        <Button 
+          variant="primary" 
+          icon={<Plus className="h-5 w-5" />}
+          onClick={() => window.location.href = '/citas/nueva'}
+        >
+          Nueva Cita
+        </Button>
+      </div>
+    }
+    client:load
+  >
+    <CalendarView
+      doctorId={doctorId}
+      client:load 
+    />
+  </PageContainer>
+</DashboardLayout>
