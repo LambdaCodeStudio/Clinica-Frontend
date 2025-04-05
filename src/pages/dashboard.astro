@@ -3,7 +3,6 @@ import { DashboardLayout } from '../components/layout/DashboardLayout';
 import { PageContainer } from '../components/layout/PageContainer';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { useAuth } from '../hooks/useAuth';
 
 // Protección de ruta
 if (Astro.locals.isAuthenticated !== true) {
@@ -17,9 +16,12 @@ const pageTitle = "Dashboard";
   <PageContainer
     title="Bienvenido a tu Dashboard"
     description="Aquí puedes ver un resumen de tu actividad"
-    actions={<Button variant="primary">Nueva Cita</Button>}
     client:load
   >
+    <div class="flex justify-end mb-4">
+      <Button variant="primary" client:load>Nueva Cita</Button>
+    </div>
+    
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <Card title="Próximas Citas">
         <p>Tienes 3 citas programadas para los próximos días.</p>

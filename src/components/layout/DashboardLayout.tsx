@@ -36,13 +36,16 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   // Cerrar sidebar en responsive al cambiar de tamaño
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) {
+      if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
         setSidebarOpen(false);
       }
     };
     
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+    return undefined;
   }, []);
   
   const toggleSidebar = () => {

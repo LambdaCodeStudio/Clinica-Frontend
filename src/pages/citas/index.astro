@@ -11,9 +11,9 @@ if (!Astro.locals.isAuthenticated) {
 }
 
 // Verificar permisos (solo ciertos roles pueden acceder)
-const userRoles = Astro.locals.userRoles || [];
-const allowedRoles = ['administrador', 'medico', 'secretaria'];
-const hasAccess = userRoles.some(role => allowedRoles.includes(role));
+const userRoles: string[] = Astro.locals.userRoles || [];
+const allowedRoles: string[] = ['administrador', 'medico', 'secretaria'];
+const hasAccess = userRoles.some((role: string) => allowedRoles.includes(role));
 
 if (!hasAccess) {
   return Astro.redirect('/dashboard?error=No tiene permisos para acceder a esta sección');

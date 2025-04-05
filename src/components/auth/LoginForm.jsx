@@ -3,7 +3,7 @@ import { AtSign, Lock, ArrowRight } from 'lucide-react';
 import { InputField, AuthLayout } from './shared/AuthComponents';
 import { useAuth } from '../../hooks/useAuth';
 
-export const LoginForm = () => {
+export default function LoginForm() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -22,7 +22,7 @@ export const LoginForm = () => {
 
   useEffect(() => {
     // Check for remembered credentials
-    if (isClient) {
+    if (isClient && typeof window !== 'undefined') {
       const remembered = localStorage.getItem('rememberedUser');
       if (remembered) {
         try {
@@ -40,25 +40,27 @@ export const LoginForm = () => {
     }
   }, [isClient]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
     try {
       // Handle remember me functionality
-      if (formData.rememberMe) {
+      if (formData.rememberMe && typeof window !== 'undefined') {
         localStorage.setItem('rememberedUser', JSON.stringify({
           email: formData.email,
           password: formData.password
         }));
-      } else {
+      } else if (typeof window !== 'undefined') {
         localStorage.removeItem('rememberedUser');
       }
 
       await login(formData.email, formData.password);
-      window.location.href = '/dashboard';
-    } catch (err: any) {
+      if (typeof window !== 'undefined') {
+        window.location.href = '/dashboard';
+      }
+    } catch (err) {
       setError(err.response?.data?.msg || 'Error al iniciar sesión');
       setIsLoading(false);
     }
@@ -151,6 +153,4 @@ export const LoginForm = () => {
       </form>
     </AuthLayout>
   );
-};
-
-export default LoginForm;
+}
