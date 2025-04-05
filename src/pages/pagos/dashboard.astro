@@ -1,0 +1,33 @@
+---
+import { DashboardLayout } from '../components/layout/DashboardLayout';
+import { PageContainer } from '../components/layout/PageContainer';
+import { MediaGallery } from '../components/media/MediaGallery';
+import Button from '../components/ui/Button';
+import { UploadCloud } from 'lucide-react';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/archivos');
+}
+
+// Verificar permisos (solo ciertos roles pueden acceder)
+const userRoles = Astro.locals.userRoles || [];
+const allowedRoles = ['administrador', 'medico', 'secretaria'];
+const hasAccess = userRoles.some(role => allowedRoles.includes(role));
+
+if (!hasAccess) {
+  return Astro.redirect('/dashboard?error=No tiene permisos para acceder a esta sección');
+}
+
+const pageTitle = "Galería de Archivos";
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title="Archivos Multimedia"
+    description="Gestione todas las imágenes y documentos de la clínica"
+    client:load
+  >
+    <MediaGallery showUploadButton={true} client:load />
+  </PageContainer>
+</DashboardLayout>

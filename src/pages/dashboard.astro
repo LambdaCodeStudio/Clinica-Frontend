@@ -6,7 +6,7 @@ import Button from '../components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
 
 // Protección de ruta
-if (!Astro.locals.isAuthenticated) {
+if (Astro.locals.isAuthenticated !== true) {
   return Astro.redirect('/login?redirect=/dashboard');
 }
 

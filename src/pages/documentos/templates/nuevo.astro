@@ -4,12 +4,14 @@ import { PageContainer } from '../../../components/layout/PageContainer';
 import { DocumentTemplateForm } from '../../../components/documents/DocumentTemplateForm';
 
 // Protección de ruta
-if (!Astro.locals.isAuthenticated) {
+const locals = Astro.locals as { isAuthenticated?: boolean; userRoles?: string[] };
+const isAuthenticated = locals.isAuthenticated ?? false;
+if (!isAuthenticated) {
   return Astro.redirect('/login?redirect=/documentos/templates/nuevo');
 }
 
 // Verificar permisos (solo administradores y médicos pueden crear plantillas)
-const userRoles = Astro.locals.userRoles || [];
+const userRoles = locals.userRoles ?? [];
 const hasAccess = userRoles.includes('administrador') || userRoles.includes('medico');
 
 if (!hasAccess) {

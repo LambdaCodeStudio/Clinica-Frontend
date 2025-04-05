@@ -1,0 +1,38 @@
+---
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { PageContainer } from '../../components/layout/PageContainer';
+import { PaymentForm } from '../../components/payments/PaymentForm';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/pagos/nuevo');
+}
+
+// Verificar permisos (solo ciertos roles pueden acceder)
+const userRoles = Astro.locals.userRoles || [];
+const allowedRoles = ['administrador', 'secretaria'];
+const hasAccess = userRoles.some(role => allowedRoles.includes(role));
+
+if (!hasAccess) {
+  return Astro.redirect('/dashboard?error=No tiene permisos para acceder a esta sección');
+}
+
+// Obtener parámetros opcionales de la URL
+const patientId = Astro.url.searchParams.get('paciente') || '';
+const appointmentId = Astro.url.searchParams.get('cita') || '';
+
+const pageTitle = "Nuevo Pago";
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title="Crear Nuevo Pago"
+    description="Registre un nuevo pago o factura en el sistema"
+  >
+    <PaymentForm 
+      patientId={patientId}
+      appointmentId={appointmentId}
+      client:load 
+    />
+  </PageContainer>
+</DashboardLayout>

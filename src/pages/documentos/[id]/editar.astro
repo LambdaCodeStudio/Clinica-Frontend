@@ -1,0 +1,53 @@
+---
+import { DashboardLayout } from '../../../components/layout/DashboardLayout';
+import { PageContainer } from '../../../components/layout/PageContainer';
+import { DocumentGenerator } from '../../../components/documents/DocumentGenerator';
+import apiService from '../../../services/api';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/documentos/' + Astro.params.id + '/editar');
+}
+
+// Verificar permisos (solo ciertos roles pueden acceder)
+const userRoles = Astro.locals.userRoles || [];
+const allowedRoles = ['administrador', 'medico', 'secretaria'];
+const hasAccess = userRoles.some(role => allowedRoles.includes(role));
+
+if (!hasAccess) {
+  return Astro.redirect('/dashboard?error=No tiene permisos para acceder a esta sección');
+}
+
+// Obtener ID del documento desde la URL
+const documentId = Astro.params.id;
+
+// Verificar que el ID existe
+if (!documentId) {
+  return Astro.redirect('/documentos?error=No se especificó un documento válido');
+}
+
+// Intentar obtener datos básicos del documento para el título
+let documentTitle = "Documento";
+try {
+  const response = await apiService.get(`/api/documentos/${documentId}/basico`);
+  if (response && response.documento) {
+    documentTitle = response.documento.titulo;
+  }
+} catch (error) {
+  console.error("Error al obtener datos del documento:", error);
+}
+
+const pageTitle = `Editar Documento: ${documentTitle}`;
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title={pageTitle}
+    description="Edite la información del documento"
+  >
+    <DocumentGenerator 
+      documentId={documentId}
+      client:load 
+    />
+  </PageContainer>
+</DashboardLayout>

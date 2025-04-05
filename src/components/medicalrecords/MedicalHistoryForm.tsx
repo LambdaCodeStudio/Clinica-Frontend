@@ -9,7 +9,6 @@ import Alert from '../ui/Alert';
 import Modal from '../ui/Modal';
 import Tabs from '../ui/Tabs';
 import apiService from '../../services/api';
-
 interface Appointment {
   _id: string;
   paciente: {
@@ -29,13 +28,11 @@ interface Appointment {
     nombre: string;
   };
 }
-
 interface Parameter {
   nombre: string;
   valor: string;
   unidad?: string;
 }
-
 interface Document {
   _id?: string;
   titulo: string;
@@ -43,7 +40,6 @@ interface Document {
   archivo?: File;
   url?: string;
 }
-
 interface MedicalHistoryFormData {
   pacienteId: string;
   medicoId: string;
@@ -63,13 +59,11 @@ interface MedicalHistoryFormData {
     motivo: string;
   };
 }
-
 interface MedicalHistoryFormProps {
   medicalHistoryId?: string;
   appointmentId?: string;
   onSubmitSuccess?: () => void;
 }
-
 export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
   medicalHistoryId,
   appointmentId,
@@ -94,7 +88,6 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
       motivo: ''
     }
   });
-
   const [loading, setLoading] = useState(false);
   const [appointmentLoading, setAppointmentLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,7 +102,6 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   
   const isEditing = !!medicalHistoryId;
-
   useEffect(() => {
     if (isEditing) {
       fetchMedicalHistoryData();
@@ -117,7 +109,6 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
       fetchAppointmentData();
     }
   }, [medicalHistoryId, appointmentId]);
-
   const fetchMedicalHistoryData = async () => {
     try {
       setLoading(true);
@@ -159,7 +150,6 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
       setLoading(false);
     }
   };
-
   const fetchAppointmentData = async (appointmentIdToFetch = appointmentId) => {
     if (!appointmentIdToFetch) return;
     
@@ -185,7 +175,6 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
       setAppointmentLoading(false);
     }
   };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -193,7 +182,6 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
       [name]: value
     }));
   };
-
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = e.target;
     setFormData(prev => ({
@@ -201,7 +189,6 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
       [name]: checked
     }));
   };
-
   const handleProximaCitaChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -212,7 +199,6 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
       }
     }));
   };
-
   const handleNewParamChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewParam(prev => ({
@@ -220,7 +206,6 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
       [name]: value
     }));
   };
-
   const addParameter = () => {
     if (!newParam.nombre || !newParam.valor) return;
     
@@ -231,14 +216,12 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
     
     setNewParam({ nombre: '', valor: '', unidad: '' });
   };
-
   const removeParameter = (index: number) => {
     setFormData(prev => ({
       ...prev,
       parametrosRegistrados: prev.parametrosRegistrados.filter((_, i) => i !== index)
     }));
   };
-
   const handleNewDocumentChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setNewDocument(prev => ({
@@ -246,7 +229,6 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
       [name]: value
     }));
   };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -263,7 +245,6 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
     };
     reader.readAsDataURL(file);
   };
-
   const uploadDocument = async () => {
     if (!newDocument.titulo || !newDocument.tipo || !newDocument.archivo) return;
     
@@ -276,7 +257,7 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
       formData.append('file', newDocument.archivo);
       formData.append('tipo', 'documento');
       formData.append('categoria', newDocument.tipo);
-      formData.append('paciente', formData.pacienteId);
+      formData.append('paciente', appointment?.paciente._id || '');
       formData.append('descripcion', newDocument.titulo);
       
       // Simular progreso de carga (en un caso real, esto vendría del API)
@@ -300,10 +281,10 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
       setFormData(prev => ({
         ...prev,
         documentos: [...prev.documentos, {
-          _id: response.archivo._id,
+          _id: (response as any).archivo._id,
           titulo: newDocument.titulo,
           tipo: newDocument.tipo,
-          url: response.archivo.url
+          url: (response as any).archivo.url
         }]
       }));
       
@@ -318,14 +299,12 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
       setIsUploading(false);
     }
   };
-
   const removeDocument = (index: number) => {
     setFormData(prev => ({
       ...prev,
       documentos: prev.documentos.filter((_, i) => i !== index)
     }));
   };
-
   const validateForm = (): boolean => {
     if (!formData.pacienteId) {
       setError('Se requiere un paciente');
@@ -354,7 +333,6 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
     
     return true;
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -409,7 +387,6 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
       setLoading(false);
     }
   };
-
   const formatDate = (dateString: string): string => {
     if (!dateString) return '';
     
@@ -424,7 +401,6 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
     
     return date.toLocaleDateString('es-ES', options);
   };
-
   if (loading || appointmentLoading) {
     return (
       <div className="w-full flex justify-center my-8">
@@ -432,7 +408,6 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
       </div>
     );
   }
-
   const tabs = [
     {
       id: 'general',
@@ -777,7 +752,6 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
       )
     }
   ];
-
   return (
     <div>
       {error && (
@@ -936,5 +910,4 @@ export const MedicalHistoryForm: React.FC<MedicalHistoryFormProps> = ({
     </div>
   );
 };
-
 export default MedicalHistoryForm;

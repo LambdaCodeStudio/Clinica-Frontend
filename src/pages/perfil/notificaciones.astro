@@ -1,0 +1,21 @@
+---
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { PageContainer } from '../../components/layout/PageContainer';
+import { NotificationSettings } from '../../components/notifications/NotificationSettings';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/perfil/notificaciones');
+}
+
+const pageTitle = "Configuración de Notificaciones";
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title="Configuración de Notificaciones"
+    description="Personaliza cómo y cuándo quieres recibir notificaciones"
+  >
+    <NotificationSettings client:load />
+  </PageContainer>
+</DashboardLayout>

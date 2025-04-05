@@ -1,0 +1,84 @@
+---
+import { DashboardLayout } from '../../../components/layout/DashboardLayout';
+import { PageContainer } from '../../../components/layout/PageContainer';
+import { DocumentViewer } from '../../../components/documents/DocumentViewer';
+import Button from '../../../components/ui/Button';
+import { Edit, Download, ArrowLeft } from 'lucide-react';
+import apiService from '../../../services/api';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/documentos/' + Astro.params.id);
+}
+
+// Verificar permisos (solo ciertos roles pueden acceder)
+const userRoles = Astro.locals.userRoles || [];
+const allowedRoles = ['administrador', 'medico', 'secretaria'];
+const hasAccess = userRoles.some(role => allowedRoles.includes(role));
+
+if (!hasAccess) {
+  return Astro.redirect('/dashboard?error=No tiene permisos para acceder a esta sección');
+}
+
+// Obtener ID del documento desde la URL
+const documentId = Astro.params.id;
+
+// Verificar que el ID existe
+if (!documentId) {
+  return Astro.redirect('/documentos?error=No se especificó un documento válido');
+}
+
+// Intentar obtener datos básicos del documento para el título
+let documentData = {
+  titulo: "Documento",
+  tipo: "",
+  paciente: { nombre: "", apellido: "" },
+  createdAt: new Date().toISOString()
+};
+
+try {
+  const response = await apiService.get(`/api/documentos/${documentId}`);
+  if (response && response.documento) {
+    documentData = response.documento;
+  }
+} catch (error) {
+  console.error("Error al obtener datos del documento:", error);
+}
+
+const pageTitle = `Documento: ${documentData.titulo}`;
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title={documentData.titulo}
+    description={`${documentData.tipo} - Paciente: ${documentData.paciente.nombre} ${documentData.paciente.apellido} - Fecha: ${new Date(documentData.createdAt).toLocaleDateString()}`}
+    actions={
+      <div class="flex space-x-2">
+        <Button 
+          variant="light" 
+          icon={<ArrowLeft className="h-5 w-5" />} 
+          onClick={() => window.history.back()}
+        >
+          Volver
+        </Button>
+        <Button 
+          variant="secondary" 
+          icon={<Edit className="h-5 w-5" />} 
+          onClick={() => window.location.href = `/documentos/${documentId}/editar`}
+        >
+          Editar
+        </Button>
+        <Button 
+          variant="primary" 
+          icon={<Download className="h-5 w-5" />}
+          onClick={() => window.location.href = `/api/documentos/${documentId}/pdf?download=true`}
+        >
+          Descargar PDF
+        </Button>
+      </div>
+    }
+    client:load
+  >
+    <DocumentViewer documentId={documentId} client:load />
+  </PageContainer>
+</DashboardLayout>

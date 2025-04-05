@@ -1,4 +1,5 @@
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios from 'axios';
+import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 // Utilidades para cookies
 const getCookie = (name: string): string | undefined => {
@@ -49,8 +50,8 @@ api.interceptors.request.use((config) => {
   if (config.headers) {
     config.headers.Accept = 'application/json';
     
-    // Indicar prefijo de cliente para ayudar en debugging
-    config.headers['X-Client-ID'] = 'plantilla-frontend';
+    // Comentado para evitar problemas CORS
+    // config.headers['X-Client-ID'] = 'plantilla-frontend';
   }
   
   return config;

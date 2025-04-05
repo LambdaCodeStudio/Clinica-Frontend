@@ -1,0 +1,33 @@
+---
+import { DashboardLayout } from '../components/layout/DashboardLayout';
+import { PageContainer } from '../components/layout/PageContainer';
+import { NotificationCenter } from '../components/notifications/NotificationCenter';
+import Button from '../components/ui/Button';
+import { Settings } from 'lucide-react';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/notificaciones');
+}
+
+const pageTitle = "Notificaciones";
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title="Centro de Notificaciones"
+    description="Revise todas sus notificaciones y alertas"
+    actions={
+      <Button 
+        variant="light" 
+        icon={<Settings className="h-5 w-5" />} 
+        onClick={() => window.location.href = '/perfil/notificaciones'}
+      >
+        Configurar Notificaciones
+      </Button>
+    }
+    client:load
+  >
+    <NotificationCenter showHeader={false} client:load />
+  </PageContainer>
+</DashboardLayout>

@@ -1,0 +1,92 @@
+---
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { PageContainer } from '../../components/layout/PageContainer';
+import { DocumentsList } from '../../components/documents/DocumentsList';
+import Button from '../../components/ui/Button';
+import { Plus, FileText } from 'lucide-react';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/documentos');
+}
+
+// Verificar permisos (solo ciertos roles pueden acceder)
+const userRoles = Astro.locals.userRoles || [];
+const allowedRoles = ['administrador', 'medico', 'secretaria'];
+const hasAccess = userRoles.some(role => allowedRoles.includes(role));
+
+if (!hasAccess) {
+  return Astro.redirect('/dashboard?error=No tiene permisos para acceder a esta sección');
+}
+
+// Obtener parámetros opcionales de la URL
+const typeFilter = Astro.url.searchParams.get('tipo') || '';
+
+const pageTitle = typeFilter 
+  ? `Documentos de ${typeFilter.charAt(0).toUpperCase() + typeFilter.slice(1)}` 
+  : "Gestión de Documentos";
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title={pageTitle}
+    description="Administre todos los documentos generados en el sistema"
+    actions={
+      <Button 
+        variant="primary" 
+        icon={<Plus className="h-5 w-5" />}
+        onClick={() => window.location.href = '/documentos/nuevo'}
+      >
+        Nuevo Documento
+      </Button>
+    }
+    client:load
+  >
+    <div class="mb-4 flex justify-between items-center">
+      <div class="flex space-x-2 overflow-x-auto">
+        <a 
+          href="/documentos" 
+          class={`px-4 py-2 text-sm rounded-lg ${!typeFilter ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+        >
+          Todos
+        </a>
+        <a 
+          href="/documentos?tipo=consentimiento" 
+          class={`px-4 py-2 text-sm rounded-lg ${typeFilter === 'consentimiento' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+        >
+          Consentimientos
+        </a>
+        <a 
+          href="/documentos?tipo=autorizacion" 
+          class={`px-4 py-2 text-sm rounded-lg ${typeFilter === 'autorizacion' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+        >
+          Autorizaciones
+        </a>
+        <a 
+          href="/documentos?tipo=informativo" 
+          class={`px-4 py-2 text-sm rounded-lg ${typeFilter === 'informativo' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+        >
+          Informativos
+        </a>
+        <a 
+          href="/documentos?tipo=receta" 
+          class={`px-4 py-2 text-sm rounded-lg ${typeFilter === 'receta' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+        >
+          Recetas
+        </a>
+        <a 
+          href="/documentos?tipo=certificado" 
+          class={`px-4 py-2 text-sm rounded-lg ${typeFilter === 'certificado' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+        >
+          Certificados
+        </a>
+      </div>
+    </div>
+    
+    <DocumentsList 
+      templateType={typeFilter}
+      showAll={true}
+      client:load 
+    />
+  </PageContainer>
+</DashboardLayout>

@@ -1,0 +1,76 @@
+---
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { PageContainer } from '../../components/layout/PageContainer';
+import { PaymentsList } from '../../components/payments/PaymentsList';
+import { PaymentDashboard } from '../../components/payments/PaymentDashboard';
+import Button from '../../components/ui/Button';
+import Tabs from '../../components/ui/Tabs';
+import { Plus, BarChart, List } from 'lucide-react';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/pagos');
+}
+
+// Verificar permisos (solo ciertos roles pueden acceder)
+const userRoles = Astro.locals.userRoles || [];
+const allowedRoles = ['administrador', 'medico', 'secretaria'];
+const hasAccess = userRoles.some(role => allowedRoles.includes(role));
+
+if (!hasAccess) {
+  return Astro.redirect('/dashboard?error=No tiene permisos para acceder a esta sección');
+}
+
+// Verificar si el usuario es administrador para mostrar el dashboard
+const isAdmin = userRoles.includes('administrador');
+
+// Obtener parámetros opcionales de la URL
+const activeTab = Astro.url.searchParams.get('tab') || (isAdmin ? 'dashboard' : 'lista');
+
+const pageTitle = "Gestión de Pagos";
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title="Pagos y Facturación"
+    description="Administre pagos, facturas y reportes financieros"
+    actions={
+      <Button 
+        variant="primary" 
+        icon={<Plus className="h-5 w-5" />} 
+        onClick={() => window.location.href = '/pagos/nuevo'}
+      >
+        Nuevo Pago
+      </Button>
+    }
+    client:load
+  >
+    <Tabs 
+      tabs={[
+        {
+          id: 'lista',
+          label: 'Lista de Pagos',
+          icon: <List className="w-4 h-4" />,
+          content: (
+            <PaymentsList client:load />
+          )
+        },
+        ...isAdmin ? [{
+          id: 'dashboard',
+          label: 'Dashboard Financiero',
+          icon: <BarChart className="w-4 h-4" />,
+          content: (
+            <PaymentDashboard client:load />
+          )
+        }] : []
+      ]}
+      activeTab={activeTab}
+      onChange={(tab) => {
+        const url = new URL(window.location);
+        url.searchParams.set('tab', tab);
+        window.history.pushState({}, '', url);
+      }}
+      client:load
+    />
+  </PageContainer>
+</DashboardLayout>

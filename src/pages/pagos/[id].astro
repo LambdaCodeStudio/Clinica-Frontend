@@ -1,0 +1,62 @@
+---
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { PageContainer } from '../../components/layout/PageContainer';
+import { PaymentInvoice } from '../../components/payments/PaymentInvoice';
+import Button from '../../components/ui/Button';
+import { Edit, ArrowLeft } from 'lucide-react';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/pagos/' + Astro.params.id);
+}
+
+// Verificar permisos (solo ciertos roles pueden acceder)
+const userRoles = Astro.locals.userRoles || [];
+const allowedRoles = ['administrador', 'medico', 'secretaria'];
+const hasAccess = userRoles.some(role => allowedRoles.includes(role));
+
+if (!hasAccess) {
+  return Astro.redirect('/dashboard?error=No tiene permisos para acceder a esta sección');
+}
+
+// Obtener ID del pago desde la URL
+const paymentId = Astro.params.id;
+
+// Verificar que el ID existe
+if (!paymentId) {
+  return Astro.redirect('/pagos?error=No se especificó un pago válido');
+}
+
+const pageTitle = "Detalle de Pago";
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title="Factura / Comprobante de Pago"
+    description="Visualización de factura y detalles del pago"
+    actions={
+      <div class="flex space-x-2">
+        <Button 
+          variant="secondary" 
+          icon={<ArrowLeft className="h-5 w-5" />} 
+          onClick={() => window.history.back()}
+        >
+          Volver
+        </Button>
+        <Button 
+          variant="primary" 
+          icon={<Edit className="h-5 w-5" />}
+          onClick={() => window.location.href = `/pagos/${paymentId}/editar`}
+        >
+          Editar
+        </Button>
+      </div>
+    }
+    client:load
+  >
+    <PaymentInvoice 
+      paymentId={paymentId}
+      client:load 
+    />
+  </PageContainer>
+</DashboardLayout>

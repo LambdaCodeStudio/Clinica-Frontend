@@ -1,0 +1,50 @@
+---
+import { DashboardLayout } from '../components/layout/DashboardLayout';
+import { PageContainer } from '../components/layout/PageContainer';
+import { UserProfile } from '../components/profile/UserProfile';
+import Button from '../components/ui/Button';
+import { UserCog, KeySquare, Bell } from 'lucide-react';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/perfil');
+}
+
+const userId = Astro.locals.userId;
+const pageTitle = "Mi Perfil";
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title="Mi Perfil"
+    description="Visualiza y administra tu información personal"
+    actions={
+      <div class="flex flex-wrap gap-2">
+        <Button 
+          variant="light" 
+          icon={<UserCog className="h-5 w-5" />} 
+          onClick={() => window.location.href = '/perfil/editar'}
+        >
+          Editar Perfil
+        </Button>
+        <Button 
+          variant="light" 
+          icon={<KeySquare className="h-5 w-5" />} 
+          onClick={() => window.location.href = '/perfil/cambiar-password'}
+        >
+          Cambiar Contraseña
+        </Button>
+        <Button 
+          variant="light" 
+          icon={<Bell className="h-5 w-5" />} 
+          onClick={() => window.location.href = '/perfil/notificaciones'}
+        >
+          Configurar Notificaciones
+        </Button>
+      </div>
+    }
+    client:load
+  >
+    <UserProfile userId={userId} client:load />
+  </PageContainer>
+</DashboardLayout>

@@ -1,0 +1,92 @@
+---
+import { DashboardLayout } from '../../../components/layout/DashboardLayout';
+import { PageContainer } from '../../../components/layout/PageContainer';
+import MedicalHistoryList from '../../../components/medicalrecords/MedicalHistoryList';
+import MedicalRecordViewer from '../../../components/medicalrecords/MedicalRecordViewer';
+import Alert from '../../../components/ui/Alert';
+import Button from '../../../components/ui/Button';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=' + Astro.url.pathname);
+}
+
+// Obtener el ID del paciente de la URL
+const { id } = Astro.params;
+
+// Verificar que el ID existe
+if (!id) {
+  return Astro.redirect('/pacientes');
+}
+
+// Datos para el SEO
+const pageTitle = "Historias Clínicas del Paciente";
+const patientId = id;
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title="Historias Clínicas"
+    description="Visualización y gestión del historial médico del paciente"
+    breadcrumbs={[
+      { text: "Pacientes", href: "/pacientes" },
+      { text: "Detalles del Paciente", href: `/pacientes/${patientId}` },
+      { text: "Historias Clínicas", href: `/pacientes/${patientId}/historias` },
+    ]}
+    actions={
+      <Button variant="primary" href={`/pacientes/${patientId}/historias/nueva`}>
+        Nueva Historia Clínica
+      </Button>
+    }
+    client:load
+  >
+    <div class="space-y-6">
+      <div id="records-list" class="print:hidden">
+        <MedicalHistoryList patientId={patientId} client:load />
+      </div>
+
+      <div id="record-viewer" class="hidden">
+        <div class="mb-4">
+          <Button variant="light" onclick="showRecordsList()" client:load>
+            ← Volver a la lista
+          </Button>
+        </div>
+        <div id="record-viewer-container"></div>
+      </div>
+    </div>
+  </PageContainer>
+</DashboardLayout>
+
+<script define:vars={{ patientId }}>
+// Función para mostrar un registro específico
+function showRecord(recordId) {
+  document.getElementById('records-list').classList.add('hidden');
+  document.getElementById('record-viewer').classList.remove('hidden');
+  
+  // Renderizar el visor de registro
+  // En un escenario real, esto se haría mediante algún tipo de enrutamiento o carga dinámica de componentes
+  // Aquí lo simulamos simplemente para la demostración
+  document.getElementById('record-viewer-container').textContent = 
+    `Cargando historia clínica ${recordId}...`;
+    
+  // Redireccionar a la página específica del registro
+  window.location.href = `/pacientes/${patientId}/historias/${recordId}`;
+}
+
+// Función para volver a la lista
+function showRecordsList() {
+  document.getElementById('record-viewer').classList.add('hidden');
+  document.getElementById('records-list').classList.remove('hidden');
+}
+
+// Exponer las funciones globalmente para que los botones puedan usarlas
+window.showRecord = showRecord;
+window.showRecordsList = showRecordsList;
+
+// Comprobar si hay un ID de registro en la URL
+const urlParams = new URLSearchParams(window.location.search);
+const recordId = urlParams.get('record');
+if (recordId) {
+  showRecord(recordId);
+}
+</script>

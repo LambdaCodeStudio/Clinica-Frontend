@@ -1,0 +1,53 @@
+---
+import { DashboardLayout } from '../../../../components/layout/DashboardLayout';
+import { PageContainer } from '../../../../components/layout/PageContainer';
+import MedicalRecordViewer from '../../../../components/medicalrecords/MedicalRecordViewer';
+import Button from '../../../../components/ui/Button';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=' + Astro.url.pathname);
+}
+
+// Obtener el ID del paciente y de la historia clínica de la URL
+const { id, recordId } = Astro.params;
+
+// Verificar que los IDs existen
+if (!id || !recordId) {
+  return Astro.redirect('/pacientes');
+}
+
+// Datos para el SEO
+const pageTitle = "Detalle de Historia Clínica";
+const patientId = id;
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title="Detalle de Historia Clínica"
+    description="Visualización detallada de la historia clínica del paciente"
+    breadcrumbs={[
+      { text: "Pacientes", href: "/pacientes" },
+      { text: "Detalles del Paciente", href: `/pacientes/${patientId}` },
+      { text: "Historias Clínicas", href: `/pacientes/${patientId}/historias` },
+      { text: "Detalle", href: `/pacientes/${patientId}/historias/${recordId}` },
+    ]}
+    actions={
+      <div class="flex space-x-2">
+        <Button variant="light" href={`/pacientes/${patientId}/historias`}>
+          Volver a la lista
+        </Button>
+        <Button variant="primary" href={`/pacientes/${patientId}/historias/${recordId}/editar`}>
+          Editar
+        </Button>
+      </div>
+    }
+    client:load
+  >
+    <MedicalRecordViewer 
+      recordId={recordId} 
+      onEditClick={() => window.location.href = `/pacientes/${patientId}/historias/${recordId}/editar`}
+      client:load 
+    />
+  </PageContainer>
+</DashboardLayout>

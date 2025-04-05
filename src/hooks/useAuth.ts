@@ -94,7 +94,7 @@ export const useAuth = () => {
       }
       
       // Verificar sesión del usuario
-      const data = await apiService.get<{user: User}>('/auth/me');
+      const data = await apiService.get<{user: User}>('/api/auth/me');
       
       setAuth({
         user: data.user,
@@ -148,7 +148,7 @@ export const useAuth = () => {
     try {
       setAuth(prev => ({ ...prev, loading: true, error: null }));
       
-      const data = await apiService.post<LoginResponse>('/auth/login', { email, password });
+      const data = await apiService.post<LoginResponse>('/api/auth/login', { email, password });
       
       if (data.status === 'success' && data.token) {
         // Establecer cookie segura
@@ -186,7 +186,7 @@ export const useAuth = () => {
       
       // Llamar al endpoint de logout si existe
       try {
-        await apiService.post('/auth/logout');
+        await apiService.post('/api/auth/logout');
       } catch (error) {
         // Continuar con el logout incluso si falla el backend
         console.error('Error durante logout en el servidor:', error);
@@ -226,14 +226,16 @@ export const useAuth = () => {
   };
 
   // Función para registrar nuevo usuario
-  const register = async (email: string, password: string, name?: string): Promise<RegisterResponse> => {
+  const register = async (email: string, password: string, nombre?: string, apellido?: string): Promise<RegisterResponse> => {
     try {
       setAuth(prev => ({ ...prev, loading: true, error: null }));
       
-      const data = await apiService.post<RegisterResponse>('/auth/register', { 
+      const data = await apiService.post<RegisterResponse>('/api/auth/register', { 
         email, 
         password,
-        name
+        nombre: nombre || '',
+        apellido: apellido || '',
+        rol: 'paciente'
       });
       
       setAuth(prev => ({ ...prev, loading: false }));
@@ -253,7 +255,7 @@ export const useAuth = () => {
     try {
       setAuth(prev => ({ ...prev, loading: true, error: null }));
       
-      const updatedUser = await apiService.put<User>('/auth/profile', profileData);
+      const updatedUser = await apiService.put<User>('/api/auth/profile', profileData);
       
       setAuth(prev => ({
         ...prev,
@@ -277,7 +279,7 @@ export const useAuth = () => {
     try {
       setAuth(prev => ({ ...prev, loading: true, error: null }));
       
-      await apiService.post('/auth/forgot-password', { email });
+      await apiService.post('/api/auth/recovery', { email });
       
       setAuth(prev => ({ ...prev, loading: false }));
     } catch (error: any) {
@@ -295,7 +297,7 @@ export const useAuth = () => {
     try {
       setAuth(prev => ({ ...prev, loading: true, error: null }));
       
-      await apiService.post('/auth/reset-password', { token, password: newPassword });
+      await apiService.post('/api/auth/reset', { token, password: newPassword });
       
       setAuth(prev => ({ ...prev, loading: false }));
     } catch (error: any) {
@@ -313,7 +315,7 @@ export const useAuth = () => {
     try {
       setAuth(prev => ({ ...prev, loading: true, error: null }));
       
-      await apiService.post('/auth/change-password', { 
+      await apiService.post('/api/auth/password', { 
         currentPassword, 
         newPassword 
       });

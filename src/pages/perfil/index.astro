@@ -1,0 +1,21 @@
+---
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { PageContainer } from '../../components/layout/PageContainer';
+import { ProfileForm } from '../../components/profile/ProfileForm';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/perfil');
+}
+
+const pageTitle = "Mi Perfil";
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title="Mi Perfil"
+    description="Administra tu información personal y configuración de cuenta"
+  >
+    <ProfileForm client:load />
+  </PageContainer>
+</DashboardLayout>
