@@ -1,0 +1,37 @@
+---
+import { DashboardLayout } from '../components/layout/DashboardLayout';
+import { PageContainer } from '../components/layout/PageContainer';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import { useAuth } from '../hooks/useAuth';
+
+// Protección de ruta
+if (!Astro.locals.isAuthenticated) {
+  return Astro.redirect('/login?redirect=/dashboard');
+}
+
+const pageTitle = "Dashboard";
+---
+
+<DashboardLayout pageTitle={pageTitle} client:load>
+  <PageContainer
+    title="Bienvenido a tu Dashboard"
+    description="Aquí puedes ver un resumen de tu actividad"
+    actions={<Button variant="primary">Nueva Cita</Button>}
+    client:load
+  >
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <Card title="Próximas Citas">
+        <p>Tienes 3 citas programadas para los próximos días.</p>
+      </Card>
+      
+      <Card title="Documentos Pendientes">
+        <p>Tienes 2 documentos pendientes de firma.</p>
+      </Card>
+      
+      <Card title="Actividad Reciente">
+        <p>Tu última visita fue el 15/03/2023.</p>
+      </Card>
+    </div>
+  </PageContainer>
+</DashboardLayout>
